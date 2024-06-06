@@ -1,0 +1,85 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: translator-primary-backup
+    namespace: github.com/Azure/streamliner/samples/ha
+spec:
+    replicas: 3
+    selector:
+        matchLabels:
+            app: translator-primary-backup
+    template:
+        metadata:
+            labels:
+                app: translator-primary-backup
+                prometheus: "github.com/Azure/streamliner/samples/ha"
+            annotations:
+                prometheus: "github.com/Azure/streamliner/samples/ha"
+        spec:
+            containers:
+                - name: translator-primary-backup
+                  image: REGISTRY/github.com/Azure/streamliner/samples/ha-app:v0.0.1
+                  imagePullPolicy: Always
+                  ports:
+                      - name: metrics
+                        containerPort: 9090
+                  resources:
+                      limits:
+                          memory: 2Gi
+                          cpu: "2"
+                      requests:
+                          memory: 256Mi
+                          cpu: "0.2"
+                  env:
+                      - name: AZURE_TENANT_ID
+                        valueFrom:
+                            secretKeyRef:
+                                name: github.com/Azure/streamliner/samples/ha-secrets-primary-backup
+                                key: AZURE_TENANT_ID
+                      - name: AZURE_CLIENT_ID
+                        valueFrom:
+                            secretKeyRef:
+                                name: github.com/Azure/streamliner/samples/ha-secrets-primary-backup
+                                key: AZURE_CLIENT_ID
+                      - name: AZURE_CLIENT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: github.com/Azure/streamliner/samples/ha-secrets-primary-backup
+                                key: AZURE_CLIENT_SECRET
+                      - name: EVENT_GRID_PRIMARY_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: github.com/Azure/streamliner/samples/ha-secrets-primary-backup
+                                key: EVENT_GRID_PRIMARY_KEY
+                      - name: EVENT_GRID_SECONDARY_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: github.com/Azure/streamliner/samples/ha-secrets-primary-backup
+                                key: EVENT_GRID_SECONDARY_KEY
+                      - name: AZURE_EVENTHUB_CONNECTIONSTRING
+                        value: "XXXXXXX"
+                  volumeMounts:
+                      - name: github.com/Azure/streamliner/samples/ha-config
+                        mountPath: "/config/github.com/Azure/streamliner/samples/ha.yaml"
+                        subPath: "github.com/Azure/streamliner/samples/ha.yaml"
+            volumes:
+                - name: github.com/Azure/streamliner/samples/ha-config
+                  configMap:
+                      name: github.com/Azure/streamliner/samples/ha-config-primary-backup
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+    name: translator-primary-backup-podmonitor
+    namespace: monitoring
+    labels:
+        prometheus: "github.com/Azure/streamliner/samples/ha"
+spec:
+    podMetricsEndpoints:
+        - interval: 10s
+          port: metrics
+          path: /metrics
+    selector:
+        matchLabels:
+            app: translator-primary-backup

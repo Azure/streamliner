@@ -1,0 +1,14 @@
+resources:
+- deployment.yaml
+- configmap.yaml
+secretGenerator:
+- name: ha-secrets-primary-active
+  namespace: streamliner
+  envs:
+  - .env
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    type: generated
+  annotations:
+    note: generated

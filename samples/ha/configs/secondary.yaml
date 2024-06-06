@@ -1,0 +1,88 @@
+environment: dev
+Monitor:
+  Role: Secondary
+  Region: WestUS # This is no longer needed.
+  Health:
+    CheckpointInterval: 10s
+    PreemptionHoldTime: 3m
+    Checkpoint:
+      URL: https://github.com/Azure/streamliner/samples/ha.blob.core.windows.net
+      ContainerName: health
+EventHub:
+  Name: eh-temp-westus3-01
+  Namespace: eh-temp-westus3.servicebus.windows.net
+  ConsumerGroup: "$Default"
+  Checkpoint:
+    URL: https://github.com/Azure/streamliner/samples/ha.blob.core.windows.net
+    ContainerName: checks
+EventGrid:
+  Primary:
+    Endpoint: https://translated-schedule-event-01.eastus2-1.eventgrid.azure.net/api/events
+    Topic: /subscriptions/b698965a-1f53-45ec-8b81-58458d1b25f7/resourceGroups/github.com/Azure/streamliner/samples/ha/providers/Microsoft.EventGrid/topics/translated-schedule-event-01
+    Chaos:
+      Enabled: false
+      Failure:
+        Every: 1m
+        Duration: 2m
+    # env EVENT_GRID_PRIMARY_KEY
+  Secondary:
+    Endpoint: https://translated-schedule-event-02.eastus2-1.eventgrid.azure.net/api/events
+    Topic: "/subscriptions/b698965a-1f53-45ec-8b81-58458d1b25f7/resourceGroups/github.com/Azure/streamliner/samples/ha/providers/Microsoft.EventGrid/topics/translated-schedule-event-02"
+    Chaos:
+      Enabled: false
+      Failure:
+        Every: 2m
+        Duration: 1m
+    # env EVENT_GRID_SECONDARY_KEY
+translate:
+  MessageExpiration: 5m
+  adx:
+    enabled: true
+    endpoint: "https://adegithub.com/Azure/streamliner/samples/haprod.eastus2.kusto.windows.net/"
+    database: github.com/Azure/streamliner/samples/ha
+    updateFrequency: 2m
+  Chaos:
+    Enabled: true
+    Failure:
+      PerMessage: 10 # Every 10 messages 1 wont translate
+  api:
+    enabled: true
+    path: /cache
+    port: 8888
+  logging:
+    enabled: true
+    endpoint: "https://adegithub.com/Azure/streamliner/samples/haprod.eastus2.kusto.windows.net/"
+    database: github.com/Azure/streamliner/samples/ha
+    timeout: 5m
+    Retry:
+      Delay: 3s
+      MaxJitter: 5s
+      Attempts: 5
+logging:
+  console:
+    pretty: false
+  adx:
+    enabled: true
+    endpoint: "https://adegithub.com/Azure/streamliner/samples/haprod.eastus2.kusto.windows.net/"
+    database: github.com/Azure/streamliner/samples/ha
+    timeout: 5m
+  fluentd:
+    enabled: true
+    socketPath: /var/run/unix.sock
+Metrics:
+  flushInterval: 5m
+  adx:
+    enabled: true
+    endpoint: "https://adegithub.com/Azure/streamliner/samples/haprod.eastus2.kusto.windows.net/"
+    database: github.com/Azure/streamliner/samples/ha
+    timeout: 5m
+    Retry:
+      Delay: 1s
+      MaxJitter: 3s
+      Attempts: 3
+Api:
+  enabled: true
+  port: 8888
+  memprofilefrequency: 1h
+
+  

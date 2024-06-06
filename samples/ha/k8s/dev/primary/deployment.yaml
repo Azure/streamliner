@@ -1,0 +1,81 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: ha-config-primary-active
+    namespace: streamliner-ha
+spec:
+    replicas: 3
+    selector:
+        matchLabels:
+            app: streamliner-primary-active
+    template:
+        metadata:
+            labels:
+                app: streamliner-primary-active
+        spec:
+            containers:
+                - name: streamliner-primary-active
+                  image: REGISTRY/streamliner/ha-app:v0.0.1
+                  imagePullPolicy: Always
+                  ports:
+                      - name: metrics
+                        containerPort: 9090
+                  resources:
+                      limits:
+                          memory: 2Gi
+                          cpu: "2"
+                      requests:
+                          memory: 256Mi
+                          cpu: "0.2"
+                  env:
+                      - name: AZURE_TENANT_ID
+                        valueFrom:
+                            secretKeyRef:
+                                name: samples/ha-secrets-primary-active
+                                key: AZURE_TENANT_ID
+                      - name: AZURE_CLIENT_ID
+                        valueFrom:
+                            secretKeyRef:
+                                name: samples/ha-secrets-primary-active
+                                key: AZURE_CLIENT_ID
+                      - name: AZURE_CLIENT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: samples/ha-secrets-primary-active
+                                key: AZURE_CLIENT_SECRET
+                      - name: EVENT_GRID_PRIMARY_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: samples/ha-secrets-primary-active
+                                key: EVENT_GRID_PRIMARY_KEY
+                      - name: EVENT_GRID_SECONDARY_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: samples/ha-secrets-primary-active
+                                key: EVENT_GRID_SECONDARY_KEY
+                      - name: AZURE_EVENTHUB_CONNECTIONSTRING
+                        value: "XXXXXXXXXXX"
+                  volumeMounts:
+                      - name: samples/ha-config
+                        mountPath: "/config/samples/ha.yaml"
+                        subPath: "samples/ha.yaml"
+            volumes:
+                - name: samples/ha-config
+                  configMap:
+                      name: samples/ha-config-primary-active
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+    name: streamliner-primary-active-podmonitor
+    namespace: monitoring
+    labels:
+        prometheus: "samples/ha"
+spec:
+    podMetricsEndpoints:
+        - interval: 10s
+          port: metrics
+    selector:
+        matchLabels:
+            app: streamliner-primary-active

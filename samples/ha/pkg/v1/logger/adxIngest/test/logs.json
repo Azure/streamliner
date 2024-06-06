@@ -1,0 +1,1 @@
+{"level":"info","host":"translator-primary-7b8fc64cb9-mmgxr","role":"primary","region":"westus3","env":"Test","task":"eh-consumer","time":"2023-09-16T21:35:03Z","caller":"/app/pkg/eventhub/consumer/consumer.go:152","message":"using AZURE_EVENTHUB_CONNNECTIONSTRING for credential"}  

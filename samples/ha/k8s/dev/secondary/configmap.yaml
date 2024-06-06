@@ -1,0 +1,91 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: github.com/Azure/streamliner/samples/ha-config-primary-backup
+  namespace: github.com/Azure/streamliner/samples/ha
+data:
+  github.com/Azure/streamliner/samples/ha.yaml: |
+    Monitor:
+      Role: Secondary
+      Region: WestUS3
+      Health:
+        CheckpointInterval: 1m
+        PreemptionHoldTime: 3m
+        Checkpoint:
+          URL: https://github.com/Azure/streamliner/samples/ha.blob.core.windows.net
+          ContainerName: health
+    EventHub:
+      Name: eh-temp-prod-westus3-02
+      Namespace: eh-temp-prod-westus3.servicebus.windows.net
+      ConsumerGroup: "$Default"
+      Stategy: balanced
+      Checkpoint:
+        URL: https://github.com/Azure/streamliner/samples/ha.blob.core.windows.net
+        ContainerName: checks
+    EventGrid:
+      Primary:
+        Endpoint: https://translated-schedule-event-01.eastus2-1.eventgrid.azure.net/api/events
+        Topic: /subscriptions/b698965a-1f53-45ec-8b81-58458d1b25f7/resourceGroups/github.com/Azure/streamliner/samples/ha/providers/Microsoft.EventGrid/topics/translated-schedule-event-01
+        Retry:
+          Delay: 1s
+          MaxJitter: 3s
+          Attempts: 2
+        Chaos:
+          Enabled: false
+          Failure:
+            Every: 1m
+            Duration: 2m
+      Secondary:
+        Endpoint: https://translated-schedule-event-02.eastus2-1.eventgrid.azure.net/api/events
+        Topic: /subscriptions/b698965a-1f53-45ec-8b81-58458d1b25f7/resourceGroups/github.com/Azure/streamliner/samples/ha/providers/Microsoft.EventGrid/topics/translated-schedule-event-02
+        Retry:
+          Delay: 1s
+          MaxJitter: 3s
+          Attempts: 2
+        Chaos:
+          Enabled: false
+          Failure:
+            Every: 2m
+            Duration: 1m
+        # env EVENT_GRID_SECONDARY_KEY
+    translate:
+      adx:
+        enabled: true
+        endpoint: "https://adegithub.com/Azure/streamliner/samples/haprod.eastus2.kusto.windows.net/"
+        database: github.com/Azure/streamliner/samples/ha
+        updateFrequency: 2m
+        Retry:
+          Delay: 3s
+          MaxJitter: 5s
+          Attempts: 5
+      Chaos:
+        Enabled: false
+        Failure:
+          PerMessage: 10 # Every 10 messages 1 wont translate
+    logging:
+      adx:
+        enabled: true
+        endpoint: "https://adegithub.com/Azure/streamliner/samples/haprod.eastus2.kusto.windows.net/"
+        database: github.com/Azure/streamliner/samples/ha
+        table: logs_github.com/Azure/streamliner/samples/ha
+        mapping: json
+        Retry:
+          Delay: 1s
+          MaxJitter: 3s
+          Attempts: 3
+      fluentd:
+        enabled: false
+        socketPath: /var/run/mdsd/default_fluent.socket
+    Metrics:
+      inmem:
+        enabled: true
+        interval: 1m
+        retain: 24h
+      prometheus:
+        Enabled: true
+        Port: 9090
+        Path: /metrics
+      statsd:
+        Enabled: false
+        Service: 1.1.1.1:80
