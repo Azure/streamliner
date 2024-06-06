@@ -2,8 +2,8 @@ resources:
 - configmap.yaml
 - deployment.yaml
 secretGenerator:
-- name: github.com/Azure/streamliner/samples/ha-secrets-primary-backup
-  namespace: github.com/Azure/streamliner/samples/ha
+- name: ha-secrets-primary-backup
+  namespace: streamliner
   envs:
   - .env
 generatorOptions:

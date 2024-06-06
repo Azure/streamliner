@@ -13,7 +13,7 @@ data:
         CheckpointInterval: 1m
         PreemptionHoldTime: 3m
         Checkpoint:
-          URL: https://github.com/Azure/streamliner/samples/ha.blob.core.windows.net
+          URL: [STORAGE_CHECKPOINT_URL]
           ContainerName: health
     EventHub:
       Name: eh-temp-prod-westus3-02
@@ -21,12 +21,12 @@ data:
       ConsumerGroup: "$Default"
       Stategy: balanced
       Checkpoint:
-        URL: https://github.com/Azure/streamliner/samples/ha.blob.core.windows.net
+        URL: [STORAGE_CHECKPOINT_URL]
         ContainerName: checks
     EventGrid:
       Primary:
-        Endpoint: https://translated-schedule-event-01.eastus2-1.eventgrid.azure.net/api/events
-        Topic: /subscriptions/b698965a-1f53-45ec-8b81-58458d1b25f7/resourceGroups/github.com/Azure/streamliner/samples/ha/providers/Microsoft.EventGrid/topics/translated-schedule-event-01
+        Endpoint: [EVENT_GRID_PRIMARY_ENDPOINT]
+        Topic: [EVENT_GRID_PRIMARY_TOPIC]
         Retry:
           Delay: 1s
           MaxJitter: 3s
@@ -37,8 +37,8 @@ data:
             Every: 1m
             Duration: 2m
       Secondary:
-        Endpoint: https://translated-schedule-event-02.eastus2-1.eventgrid.azure.net/api/events
-        Topic: /subscriptions/b698965a-1f53-45ec-8b81-58458d1b25f7/resourceGroups/github.com/Azure/streamliner/samples/ha/providers/Microsoft.EventGrid/topics/translated-schedule-event-02
+        Endpoint: [EVENT_GRID_SECONDARY_ENDPOINT]
+        Topic: [EVENT_GRID_SECONDARY_TOPIC]
         Retry:
           Delay: 1s
           MaxJitter: 3s
@@ -49,26 +49,12 @@ data:
             Every: 2m
             Duration: 1m
         # env EVENT_GRID_SECONDARY_KEY
-    translate:
-      adx:
-        enabled: true
-        endpoint: "https://adegithub.com/Azure/streamliner/samples/haprod.eastus2.kusto.windows.net/"
-        database: github.com/Azure/streamliner/samples/ha
-        updateFrequency: 2m
-        Retry:
-          Delay: 3s
-          MaxJitter: 5s
-          Attempts: 5
-      Chaos:
-        Enabled: false
-        Failure:
-          PerMessage: 10 # Every 10 messages 1 wont translate
     logging:
       adx:
         enabled: true
-        endpoint: "https://adegithub.com/Azure/streamliner/samples/haprod.eastus2.kusto.windows.net/"
-        database: github.com/Azure/streamliner/samples/ha
-        table: logs_github.com/Azure/streamliner/samples/ha
+        endpoint: [ADX_ENDPOINT]
+        database: [ADX_DATABASE]
+        table: [ADX_TABLE]
         mapping: json
         Retry:
           Delay: 1s

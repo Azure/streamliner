@@ -48,21 +48,6 @@ data:
           Failure:
             Every: 2m
             Duration: 1m
-        # env EVENT_GRID_SECONDARY_KEY
-    translate:
-      adx:
-        enabled: true
-        endpoint: [ADX_ENDPOINT]
-        database: [ADX_DATABASE]
-        updateFrequency: 2m
-        Retry:
-          Delay: 3s
-          MaxJitter: 5s
-          Attempts: 5
-      Chaos:
-        Enabled: false
-        Failure:
-          PerMessage: 10 # Every 10 messages 1 wont translate
     logging:
       adx:
         enabled: true
